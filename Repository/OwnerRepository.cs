@@ -24,11 +24,19 @@ namespace Repository
             this.Delete(owner);
         }
 
-        public async Task<IEnumerable<Owner>> GetAllOwnersAsync()
+        public async Task<PagedList<Owner>> GetAllOwnersAsync(OwnerParameters ownerParameters)
         {
-            return await FindAll()
-                        .OrderBy(x => x.Name)
-                        .ToListAsync();
+
+            //var list = await FindAll()
+            //            .OrderBy(x => x.Name)
+            //            .Skip((ownerParameters.PageNumber - 1) * ownerParameters.PageSize)
+            //            .Take(ownerParameters.PageSize)
+            //            .ToListAsync();
+
+            return PagedList<Owner>.ToPagedList(FindAll().OrderBy(on => on.Name),
+                    ownerParameters.PageNumber,
+                    ownerParameters.PageSize);
+
         }
 
         public async Task<Owner> GetOwnerByIdAsync(string ownerId)

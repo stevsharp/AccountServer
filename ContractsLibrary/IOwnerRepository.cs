@@ -6,7 +6,7 @@ namespace LoggerService
 {
     public interface IOwnerRepository : IRepositoryBase<Owner> 
     {
-        Task<IEnumerable<Owner>> GetAllOwnersAsync();
+        Task<PagedList<Owner>> GetAllOwnersAsync(OwnerParameters ownerParameters);
         Task<Owner> GetOwnerByIdAsync(string ownerId);
         Task<Owner> GetOwnerWithDetailsAsync(string ownerId);
         void CreateOwner(Owner owner);

@@ -3,6 +3,7 @@ using Entities.DataTransferObjects;
 using Entities.Models;
 using LoggerService;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -26,11 +27,25 @@ namespace AccountOwnerServer.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllOwners()
+        public async Task<IActionResult> GetAllOwners([FromQuery] OwnerParameters ownerParameters)
         {
-            var owners = await this._repository.Owner.GetAllOwnersAsync();
-            var ownersResult = _mapper.Map<IEnumerable<OwnerDto>>(owners);
-            return Ok(ownersResult);
+            var owners = await this._repository.Owner.GetAllOwnersAsync(ownerParameters);
+
+            var metadata = new
+            {
+                owners.TotalCount,
+                owners.PageSize,
+                owners.CurrentPage,
+                owners.TotalPages,
+                owners.HasNext,
+                owners.HasPrevious
+            };
+
+            Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(metadata));
+
+            _logger.LogInfo($"Returned {owners.TotalCount} owners from database.");
+
+            return Ok(owners);
         }
 
         [HttpGet("{id}", Name = "OwnerById")]
