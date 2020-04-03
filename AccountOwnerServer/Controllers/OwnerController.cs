@@ -29,6 +29,9 @@ namespace AccountOwnerServer.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllOwners([FromQuery] OwnerParameters ownerParameters)
         {
+            if (!ownerParameters.ValidYearRange)
+                return BadRequest("Max year of birth cannot be less than min year of birth");
+
             var owners = await this._repository.Owner.GetAllOwnersAsync(ownerParameters);
 
             var metadata = new

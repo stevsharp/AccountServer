@@ -33,10 +33,22 @@ namespace Repository
             //            .Take(ownerParameters.PageSize)
             //            .ToListAsync();
 
-            return PagedList<Owner>.ToPagedList(FindAll().OrderBy(on => on.Name),
+            var owners = FindByCondition(o => o.DateOfBirth.Year >= ownerParameters.MinYearOfBirth &&
+                                            o.DateOfBirth.Year <= ownerParameters.MaxYearOfBirth);
+
+            SearchByName(ref owners, ownerParameters.Name);
+
+            return PagedList<Owner>.ToPagedList(owners,
                     ownerParameters.PageNumber,
                     ownerParameters.PageSize);
+        }
 
+        private void SearchByName(ref IQueryable<Owner> owners, string ownerName)
+        {
+            if (!owners.Any() || string.IsNullOrWhiteSpace(ownerName))
+                return;
+
+            owners = owners.Where(o => o.Name.ToLower().Contains(ownerName.Trim().ToLower()));
         }
 
         public async Task<Owner> GetOwnerByIdAsync(string ownerId)
