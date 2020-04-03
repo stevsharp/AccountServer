@@ -3,6 +3,7 @@ using Entities.DataTransferObjects;
 using Entities.Models;
 using LoggerService;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Newtonsoft.Json;
 using System;
 using System.Collections;
@@ -19,11 +20,13 @@ namespace AccountOwnerServer.Controllers
         private readonly ILoggerManager _logger;
         private readonly IRepositoryWrapper _repository;
         private readonly IMapper _mapper;
-        public OwnerController(ILoggerManager logger, IRepositoryWrapper repository, IMapper mapper)
+        private LinkGenerator _linkGenerator;
+        public OwnerController(ILoggerManager logger, IRepositoryWrapper repository, IMapper mapper , LinkGenerator linkGenerator)
         {
             _logger = logger;
             _repository = repository;
             _mapper = mapper;
+            _linkGenerator = linkGenerator;
         }
 
         [HttpGet]
