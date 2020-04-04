@@ -27,11 +27,20 @@ namespace Entities.Models
             AddRange(items);
         }
 
-        public async static Task<PagedList<T>> ToPagedList(IQueryable<T> source , int pageNumber , int pageSize)
+        public static PagedList<T> ToPagedList(IEnumerable<T> source, int pageNumber, int pageSize)
         {
             var count = source.Count();
-            var items = await source.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+            var items = source.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+
             return new PagedList<T>(items, count, pageNumber, pageSize);
         }
+
+        public async static Task<PagedList<T>> ToPagedListAsync(IEnumerable<T> source, int pageNumber, int pageSize)
+        {
+            var count = source.Count();
+            var items = source.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+            return await Task.FromResult(new PagedList<T>(items, count, pageNumber, pageSize));
+        }
+
     }
 }

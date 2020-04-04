@@ -38,6 +38,8 @@ namespace AccountOwnerServer.Extensions
         {
             services.AddScoped<ISortHelper<Owner>, SortHelper<Owner>>();
             services.AddScoped<ISortHelper<Account>, SortHelper<Account>>();
+            services.AddScoped<IDataShaper<Owner>, DataShaper<Owner>>();
+            services.AddScoped<IDataShaper<Account>, DataShaper<Account>>();
             services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
         }
         public static void ConfigureLoggerService(this IServiceCollection services)

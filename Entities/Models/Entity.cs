@@ -12,7 +12,7 @@ namespace Entities.Models
 {
     public class Entity : DynamicObject, IXmlSerializable, IDictionary<string, object>
     {
-        private readonly string root = "EntityWithLinks";
+        private readonly string root = "Entity";
         private readonly IDictionary<string, object> expando = null;
 
         public Entity()

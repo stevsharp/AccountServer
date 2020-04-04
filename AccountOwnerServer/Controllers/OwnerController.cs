@@ -33,6 +33,7 @@ namespace AccountOwnerServer.Controllers
         /// https://localhost:44385/api/owner?minYearOfBirth=1975&maxYearOfBirth=1997&pageSize=2&pageNumber=2
         /// https://localhost:44385/api/owners?name=Anna Bosh
         /// https://localhost:44385/api/owner?orderBy=name,dateOfBirth desc
+        /// https://localhost:44385/api/owner?fields=name,dateOfBirth
         /// </summary>
         /// <param name="ownerParameters"></param>
         /// <returns></returns>
@@ -42,7 +43,7 @@ namespace AccountOwnerServer.Controllers
             if (!ownerParameters.ValidYearRange)
                 return BadRequest("Max year of birth cannot be less than min year of birth");
 
-            var owners = await this._repository.Owner.GetAllOwnersAsync(ownerParameters);
+            var owners = this._repository.Owner.GetOwners(ownerParameters);
 
             var metadata = new
             {

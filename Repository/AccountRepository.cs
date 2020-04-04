@@ -11,10 +11,14 @@ namespace Repository
 {
     public class AccountRepository : RepositoryBase<Account> , IAccountRepository
     {
-        private ISortHelper<Account> _sortHelper;
-        public AccountRepository(RepositoryContext repositoryContext, ISortHelper<Account> sortHelper) : base(repositoryContext)
+        private readonly ISortHelper<Account> _sortHelper;
+        public readonly IDataShaper<Account> _accountDataShaper;
+        public AccountRepository(RepositoryContext repositoryContext, 
+            ISortHelper<Account> sortHelper,
+            IDataShaper<Account> accountDataShaper) : base(repositoryContext)
         {
             _sortHelper = sortHelper;
+            _accountDataShaper = accountDataShaper;
         }
 
         public async Task<IEnumerable<Account>> AccountsByOwner(string ownerId)
@@ -30,7 +34,7 @@ namespace Repository
         public async Task<PagedList<Account>> GetAccountsByOwner(string ownerId , AccountParameters parameters)
         {
             var condition = FindByCondition(a => a.OwnerId.Equals(ownerId));
-            return await PagedList<Account>.ToPagedList(condition,
+            return await PagedList<Account>.ToPagedListAsync(condition,
                     parameters.PageNumber,
                     parameters.PageSize);
         }
