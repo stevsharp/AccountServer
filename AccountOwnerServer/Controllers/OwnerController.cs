@@ -28,7 +28,12 @@ namespace AccountOwnerServer.Controllers
             _mapper = mapper;
             _linkGenerator = linkGenerator;
         }
-
+        /// <summary>
+        /// https://localhost:44385/api/owner?minYearOfBirth=1975
+        /// https://localhost:5001/api/owner?minYearOfBirth=1975&maxYearOfBirth=1997&pageSize=2&pageNumber=2
+        /// </summary>
+        /// <param name="ownerParameters"></param>
+        /// <returns></returns>
         [HttpGet]
         public async Task<IActionResult> GetAllOwners([FromQuery] OwnerParameters ownerParameters)
         {

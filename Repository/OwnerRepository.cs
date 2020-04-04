@@ -26,19 +26,12 @@ namespace Repository
 
         public async Task<PagedList<Owner>> GetAllOwnersAsync(OwnerParameters ownerParameters)
         {
-
-            //var list = await FindAll()
-            //            .OrderBy(x => x.Name)
-            //            .Skip((ownerParameters.PageNumber - 1) * ownerParameters.PageSize)
-            //            .Take(ownerParameters.PageSize)
-            //            .ToListAsync();
-
             var owners = FindByCondition(o => o.DateOfBirth.Year >= ownerParameters.MinYearOfBirth &&
                                             o.DateOfBirth.Year <= ownerParameters.MaxYearOfBirth);
 
             SearchByName(ref owners, ownerParameters.Name);
 
-            return PagedList<Owner>.ToPagedList(owners,
+            return await PagedList<Owner>.ToPagedList(owners,
                     ownerParameters.PageNumber,
                     ownerParameters.PageSize);
         }

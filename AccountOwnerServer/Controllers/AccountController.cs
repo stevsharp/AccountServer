@@ -4,6 +4,7 @@ using LoggerService;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Newtonsoft.Json;
+using System.Threading.Tasks;
 
 namespace AccountOwnerServer.Controllers
 {
@@ -22,9 +23,9 @@ namespace AccountOwnerServer.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAccountsForOwner(string ownerId, [FromQuery] AccountParameters parameters)
+        public async Task<IActionResult> GetAccountsForOwner(string ownerId, [FromQuery] AccountParameters parameters)
         {
-            var accounts = _repository.Account.GetAccountsByOwner(ownerId, parameters);
+            var accounts = await _repository.Account.GetAccountsByOwner(ownerId, parameters);
 
             var metadata = new
             {
