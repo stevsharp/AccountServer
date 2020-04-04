@@ -5,14 +5,21 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq.Dynamic.Core;
+using Entities.Helpers;
 
 namespace Repository
 {
     public class OwnerRepository : RepositoryBase<Owner>, IOwnerRepository
     {
-        public OwnerRepository(RepositoryContext repositoryContext) : base(repositoryContext){}
+        private ISortHelper<Owner> _sortHelper;
+        public OwnerRepository(RepositoryContext repositoryContext, ISortHelper<Owner> sortHelper) : base(repositoryContext)
+        {
+            _sortHelper = sortHelper;
+        }
 
         public void CreateOwner(Owner owner)
         {
@@ -30,6 +37,8 @@ namespace Repository
                                             o.DateOfBirth.Year <= ownerParameters.MaxYearOfBirth);
 
             SearchByName(ref owners, ownerParameters.Name);
+
+            _sortHelper.ApplySort(owners, ownerParameters.OrderBy);
 
             return await PagedList<Owner>.ToPagedList(owners,
                     ownerParameters.PageNumber,

@@ -30,7 +30,9 @@ namespace AccountOwnerServer.Controllers
         }
         /// <summary>
         /// https://localhost:44385/api/owner?minYearOfBirth=1975
-        /// https://localhost:5001/api/owner?minYearOfBirth=1975&maxYearOfBirth=1997&pageSize=2&pageNumber=2
+        /// https://localhost:44385/api/owner?minYearOfBirth=1975&maxYearOfBirth=1997&pageSize=2&pageNumber=2
+        /// https://localhost:44385/api/owners?name=Anna Bosh
+        /// https://localhost:44385/api/owner?orderBy=name,dateOfBirth desc
         /// </summary>
         /// <param name="ownerParameters"></param>
         /// <returns></returns>

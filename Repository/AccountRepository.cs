@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Entities;
+using Entities.Helpers;
 using Entities.Models;
 using LoggerService;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +11,11 @@ namespace Repository
 {
     public class AccountRepository : RepositoryBase<Account> , IAccountRepository
     {
-        public AccountRepository(RepositoryContext repositoryContext) : base(repositoryContext){}
+        private ISortHelper<Account> _sortHelper;
+        public AccountRepository(RepositoryContext repositoryContext, ISortHelper<Account> sortHelper) : base(repositoryContext)
+        {
+            _sortHelper = sortHelper;
+        }
 
         public async Task<IEnumerable<Account>> AccountsByOwner(string ownerId)
         {
