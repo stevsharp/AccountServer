@@ -1,9 +1,12 @@
 using System;
 using System.IO;
+using System.Net;
 using AccountOwnerServer.Extensions;
 using AutoMapper;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,7 +34,7 @@ namespace AccountOwnerServer
             services.ConfigureLoggerService();
             services.ConfigureMySqlContext(Configuration);
             services.ConfigureRepositoryWrapper();
-
+            services.RegisterFilters();
             services.AddAutoMapper(typeof(Startup));
 
             services.AddControllers(config =>
@@ -39,7 +42,10 @@ namespace AccountOwnerServer
                 config.RespectBrowserAcceptHeader = true;
                 config.ReturnHttpNotAcceptable = true;
             }).AddXmlDataContractSerializerFormatters()
-            .AddNewtonsoftJson();   
+            .AddNewtonsoftJson();
+
+
+            services.AddCustomMediaTypes();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -49,6 +55,32 @@ namespace AccountOwnerServer
             {
                 app.UseDeveloperExceptionPage();
             }
+            else
+            {
+                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+                app.UseHsts();
+            }
+
+            app.UseExceptionHandler(appError =>
+            {
+                appError.Run(async context =>
+                {
+                    context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                    context.Response.ContentType = "application/json";
+
+                    var contextFeature = context.Features.Get<IExceptionHandlerFeature>();
+                    if (contextFeature != null)
+                    {
+                        Console.WriteLine($"Something went wrong: {contextFeature.Error}");
+
+                        await context.Response.WriteAsync(new
+                        {
+                            context.Response.StatusCode,
+                            Message = "Internal Server Error."
+                        }.ToString());
+                    }
+                });
+            });
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();

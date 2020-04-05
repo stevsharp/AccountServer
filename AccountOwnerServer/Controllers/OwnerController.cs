@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Entities;
 using Entities.DataTransferObjects;
 using Entities.Models;
 using LoggerService;
@@ -9,7 +10,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Microsoft.Net.Http.Headers;
+using AccountOwnerServer.Filters;
 
 namespace AccountOwnerServer.Controllers
 {
@@ -38,12 +42,13 @@ namespace AccountOwnerServer.Controllers
         /// <param name="ownerParameters"></param>
         /// <returns></returns>
         [HttpGet]
+        [ServiceFilter(typeof(ValidateMediaTypeAttribute))]
         public async Task<IActionResult> GetAllOwners([FromQuery] OwnerParameters ownerParameters)
         {
             if (!ownerParameters.ValidYearRange)
                 return BadRequest("Max year of birth cannot be less than min year of birth");
 
-            var owners = this._repository.Owner.GetOwners(ownerParameters);
+            var owners = await this._repository.Owner.GetAllOwnersAsync(ownerParameters);
 
             var metadata = new
             {
@@ -59,28 +64,75 @@ namespace AccountOwnerServer.Controllers
 
             _logger.LogInfo($"Returned {owners.TotalCount} owners from database.");
 
-            return Ok(owners);
+            var shapedOwners = owners.Select(o => o.Entity).ToList();
+
+            var mediaType = (Microsoft.Net.Http.Headers.MediaTypeHeaderValue)HttpContext.Items["AcceptHeaderMediaType"];
+
+            if (!mediaType.SubTypeWithoutSuffix.EndsWith("hateoas", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return Ok(shapedOwners);
+            }
+
+            for (var index = 0; index < owners.Count(); index++)
+            {
+                var ownerLinks = CreateLinksForOwner(owners[index].Id, ownerParameters.Fields);
+                shapedOwners[index].Add("Links", ownerLinks);
+            }
+
+            var ownersWrapper = new LinkCollectionWrapper<Entity>(shapedOwners);
+
+            return Ok(CreateLinksForOwners(ownersWrapper));
+
+        }
+
+        private IEnumerable<Link> CreateLinksForOwner(string id, string fields = "")
+        {
+            var links = new List<Link>
+            {
+                new Link(_linkGenerator.GetUriByAction(HttpContext, nameof(GetOwnerById), values: new { id, fields }),
+                "self",
+                "GET"),
+
+                new Link(_linkGenerator.GetUriByAction(HttpContext, nameof(DeleteOwner), values: new { id }),
+                "delete_owner",
+                "DELETE"),
+
+                new Link(_linkGenerator.GetUriByAction(HttpContext, nameof(UpdateOwner), values: new { id }),
+                "update_owner",
+                "PUT")
+            };
+
+            return links;
+        }
+
+        private LinkCollectionWrapper<Entity> CreateLinksForOwners(LinkCollectionWrapper<Entity> ownersWrapper)
+        {
+            ownersWrapper.Links.Add(new Link(_linkGenerator.GetUriByAction(HttpContext, nameof(GetAllOwners), values: new { }),
+                    "self",
+                    "GET"));
+
+            return ownersWrapper;
         }
 
         [HttpGet("{id}", Name = "OwnerById")]
-        public async Task<IActionResult> GetOwnerById(string id)
+        public async Task<IActionResult> GetOwnerById(string id, [FromQuery] string fields)
         {
             try
             {
-                var owner = await _repository.Owner.GetOwnerByIdAsync(id);
+                
+                var owner = await  _repository.Owner.GetOwnerByIdAsync(id, fields);
 
-                if (owner == null)
+                if (string.IsNullOrWhiteSpace(owner.Id))
                 {
                     _logger.LogError($"Owner with id: {id}, hasn't been found in db.");
                     return NotFound();
                 }
-                else
-                {
-                    _logger.LogInfo($"Returned owner with id: {id}");
 
-                    var ownerResult = _mapper.Map<OwnerDto>(owner);
-                    return Ok(ownerResult);
-                }
+                var mediaType = (Microsoft.Net.Http.Headers.MediaTypeHeaderValue)HttpContext.Items["AcceptHeaderMediaType"];
+
+                owner.Entity.Add("Links", CreateLinksForOwner(owner.Id, fields));
+
+                return Ok(owner);
             }
             catch (Exception ex)
             {

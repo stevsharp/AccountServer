@@ -35,7 +35,7 @@ namespace Repository
             this.Delete(owner);
         }
 
-        public async Task<PagedList<Entity>> GetAllOwnersAsync(OwnerParameters ownerParameters)
+        public async Task<PagedList<ShapedEntity>> GetAllOwnersAsync(OwnerParameters ownerParameters)
         {
             var owners = FindByCondition(o => o.DateOfBirth.Year >= ownerParameters.MinYearOfBirth &&
                                             o.DateOfBirth.Year <= ownerParameters.MaxYearOfBirth);
@@ -46,10 +46,10 @@ namespace Repository
 
             var shapedOwners = _dataShaper.ShapeData(owners, ownerParameters.Fields);
 
-            return await PagedList<Entity>.ToPagedListAsync(shapedOwners, ownerParameters.PageNumber, ownerParameters.PageSize);
+            return await PagedList<ShapedEntity>.ToPagedListAsync(shapedOwners, ownerParameters.PageNumber, ownerParameters.PageSize);
         }
 
-        public PagedList<Entity> GetOwners(OwnerParameters ownerParameters)
+        public PagedList<ShapedEntity> GetOwners(OwnerParameters ownerParameters)
         {
             var owners = FindByCondition(o => o.DateOfBirth.Year >= ownerParameters.MinYearOfBirth &&
                                         o.DateOfBirth.Year <= ownerParameters.MaxYearOfBirth);
@@ -59,7 +59,7 @@ namespace Repository
             var sortedOwners = _sortHelper.ApplySort(owners, ownerParameters.OrderBy);
             var shapedOwners = _dataShaper.ShapeData(sortedOwners, ownerParameters.Fields);
 
-            return PagedList<Entity>.ToPagedList(shapedOwners,
+            return PagedList<ShapedEntity>.ToPagedList(shapedOwners,
                 ownerParameters.PageNumber,
                 ownerParameters.PageSize);
         }
@@ -74,8 +74,19 @@ namespace Repository
 
         public async Task<Owner> GetOwnerByIdAsync(string ownerId)
         {
-            return await FindByCondition(x => x.Id.Equals(ownerId))
+            var owner = await FindByCondition(x => x.Id.Equals(ownerId))
+                             .DefaultIfEmpty(new Owner())
+                             .FirstOrDefaultAsync();
+
+            return owner;
+        }
+
+        public async Task<ShapedEntity> GetOwnerByIdAsync(string ownerId, string fields)
+        {
+            var owner = await FindByCondition(x => x.Id.Equals(ownerId))
                             .FirstOrDefaultAsync();
+
+            return _dataShaper.ShapeData(owner, fields);
         }
 
         public async Task<Owner> GetOwnerWithDetailsAsync(string ownerId)
@@ -89,5 +100,7 @@ namespace Repository
         {
             this.Update(owner);
         }
+
+       
     }
 }

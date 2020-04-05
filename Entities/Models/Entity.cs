@@ -72,6 +72,9 @@ namespace Entities.Models
 
         private void WriteXmlElement(string key, object value, XmlWriter writer)
         {
+            if (value == null)
+                return;
+
             writer.WriteStartElement(key);
 
             if (value.GetType() == typeof(List<Link>))

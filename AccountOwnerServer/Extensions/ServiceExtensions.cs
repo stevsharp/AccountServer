@@ -1,16 +1,16 @@
 ﻿using LoggerService;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Entities;
 using Repository;
 using Entities.Helpers;
 using Entities.Models;
+using AccountOwnerServer.Filters;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
+using System.Linq;
 
 namespace AccountOwnerServer.Extensions
 {
@@ -28,6 +28,28 @@ namespace AccountOwnerServer.Extensions
             });
         }
 
+        public static void AddCustomMediaTypes(this IServiceCollection services)
+        {
+            services.Configure<MvcOptions>(config =>
+            {
+                var newtonsoftJsonOutputFormatter = config.OutputFormatters
+                      .OfType<NewtonsoftJsonOutputFormatter>()?.FirstOrDefault();
+
+                if (newtonsoftJsonOutputFormatter != null)
+                {
+                    newtonsoftJsonOutputFormatter.SupportedMediaTypes.Add("application/vnd.codemaze.hateoas+json");
+                }
+
+                var xmlOutputFormatter = config.OutputFormatters
+                      .OfType<XmlDataContractSerializerOutputFormatter>()?.FirstOrDefault();
+
+                if (xmlOutputFormatter != null)
+                {
+                    xmlOutputFormatter.SupportedMediaTypes.Add("application/vnd.codemaze.hateoas+xml");
+                }
+            });
+        }
+
         public static void ConfigureMySqlContext(this IServiceCollection services, IConfiguration config)
         {
             var connectionString = config["ConnectionStrings:DefaultConnection"];
@@ -42,6 +64,12 @@ namespace AccountOwnerServer.Extensions
             services.AddScoped<IDataShaper<Account>, DataShaper<Account>>();
             services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
         }
+
+        public static void RegisterFilters(this IServiceCollection services)
+        {
+            services.AddScoped<ValidateMediaTypeAttribute>();
+        }
+
         public static void ConfigureLoggerService(this IServiceCollection services)
         {
             services.AddSingleton<ILoggerManager, LoggerManager>();
